@@ -15,7 +15,7 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor(red: 41 / 255, green: 45 / 255, blue: 50 / 255, alpha: 1)
-        let button = MButton(type: .switch, icon: UIImage(named: "flymode"))
+        let button = MButton(icon: UIImage(named: "flymode"))
         view.addSubview(button)
         button.snp.makeConstraints { make in
             make.size.equalTo(60)
@@ -23,12 +23,23 @@ class ViewController: UIViewController {
             make.top.equalToSuperview().offset(100)
         }
 
-        let button2 = MButton(type: .switch, icon: UIImage(named: "bluetooth"))
+        let button2 = MButton(icon: UIImage(named: "bluetooth"))
         view.addSubview(button2)
         button2.snp.makeConstraints { make in
             make.size.equalTo(60)
             make.left.equalTo(button.snp.right).offset(40)
             make.top.equalTo(button.snp.top)
+        }
+        let buttonHeight: CGFloat = 80
+        var appearence = MButton.Appearence.default
+        appearence.style = .rectangle(80 * 0.3)
+        let button3 = MButton(icon: UIImage(named: "screenMirro"), title: "屏幕镜像", appearence: appearence)
+        view.addSubview(button3)
+        button3.snp.makeConstraints { (make) in
+            make.width.equalTo(140)
+            make.height.equalTo(buttonHeight)
+            make.left.equalTo(button.snp.left)
+            make.top.equalTo(button.snp.bottom).offset(40)
         }
     }
 }

@@ -14,71 +14,71 @@ extension MButton {
     }
 
     public struct Appearence {
-        var backgroundColor: UIColor
-        var selectedColor: UIColor
-        var unselectedColor: UIColor
-        var shadowColor: UIColor
-        var style: Style
+        public var backgroundColor: UIColor
+        public var selectedColor: UIColor
+        public var unselectedColor: UIColor
+        public var shadowColor: UIColor
+        public var style: Style
+        public var iconSize: CGSize = CGSize(width: 22, height: 22)
+        public var titleFont: UIFont = .systemFont(ofSize: 17)
+        public var titleColor: UIColor = UIColor(r: 143, g: 147, b: 155)
 
-        var iconSize: CGSize = CGSize(width: 22, height: 22)
-
-        var titleFont: UIFont = .systemFont(ofSize: 17)
-        var titleColor: UIColor = UIColor(r: 143, g: 147, b: 155)
-
-        static var `default`: Appearence = Appearence(backgroundColor: .init(r: 41, g: 45, b: 50), selectedColor: UIColor(r: 143, g: 147, b: 155), unselectedColor: UIColor(r: 143, g: 147, b: 155), shadowColor: UIColor(r: 48, g: 52, b: 58), style: .circle)
+        public static var `default`: Appearence = Appearence(backgroundColor: .init(r: 41, g: 45, b: 50), selectedColor: UIColor(r: 143, g: 147, b: 155), unselectedColor: UIColor(r: 143, g: 147, b: 155), shadowColor: UIColor(r: 48, g: 52, b: 58), style: .circle)
     }
 }
 
 extension MButton.Appearence {
-    enum Style {
+    public enum Style {
         case circle
-        case rectangle
-        case roundedRectangle(_ corner: CGFloat)
+        case rectangle(_ corner: CGFloat)
     }
 }
 
 public class MButton: UIView {
-    var isOn: Bool = false {
+    public var isOn: Bool = false {
         didSet {
             updateView()
         }
     }
 
-    var type: Type = .switch {
+    public var icon: UIImage? {
         didSet {
             updateView()
         }
     }
 
-    var icon: UIImage? {
+    public var title: String = "" {
         didSet {
             updateView()
         }
     }
 
-    var title: String = "" {
+    var appearence: Appearence = .default {
         didSet {
             updateView()
         }
     }
-
-    var appearence: Appearence = .default
 
     private var backgroundView: UIView = UIView()
     private var iconView: UIImageView = UIImageView()
     private var titleLabel: UILabel = UILabel()
 
-    public convenience init(type: Type, icon: UIImage? = nil, title: String = "") {
+    private var layer1: CALayer = CALayer()
+    private var layer2: CALayer = CALayer()
+    private var layer3: CALayer = CALayer()
+
+    private var onTappedClosure: ((MButton) -> Void)?
+
+    public convenience init(icon: UIImage? = nil, title: String = "", appearence: Appearence = .default) {
         self.init(frame: .zero)
         self.icon = icon
         self.title = title
+        self.appearence = appearence
     }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        addSubview(backgroundView)
-        addSubview(iconView)
-        addSubview(titleLabel)
+        initView()
         updateView()
     }
 
@@ -93,6 +93,14 @@ public class MButton: UIView {
 }
 
 extension MButton {
+    private func initView() {
+        addSubview(backgroundView)
+        addSubview(iconView)
+        addSubview(titleLabel)
+
+        addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onButtonTapped(_:))))
+    }
+
     private func updateView() {
         print("frame: \(frame)")
         backgroundView.frame = CGRect(origin: .zero, size: frame.size)
@@ -105,10 +113,10 @@ extension MButton {
                 corner = frame.height / 2
             }
             backgroundView.layer.cornerRadius = corner
-        case .rectangle:
-            backgroundView.layer.cornerRadius = 0
-        case let .roundedRectangle(corner):
+            layer.cornerRadius = corner
+        case let .rectangle(corner):
             backgroundView.layer.cornerRadius = corner
+            layer.cornerRadius = corner
         }
         backgroundView.backgroundColor = appearence.backgroundColor
 
@@ -117,69 +125,112 @@ extension MButton {
         if title == "" {
             origin = CGPoint(x: (frame.width - appearence.iconSize.width) / 2, y: (frame.height - appearence.iconSize.height) / 2)
         } else {
-            // 有文字
+            let width = title.widthWithFont(font: appearence.titleFont)
+            let totalWidth = width + appearence.iconSize.width + 50
+            if frame.width < totalWidth {
+                frame.size = CGSize(width: totalWidth, height: frame.height)
+                layoutSubviews()
+            }
+            origin = CGPoint(x: 20, y: (frame.height - appearence.iconSize.height) / 2)
+            titleLabel.frame = CGRect(x: 30 + appearence.iconSize.width, y: 0, width: width, height: frame.height)
+            titleLabel.numberOfLines = 1
+            titleLabel.text = title
+            titleLabel.font = appearence.titleFont
+            titleLabel.textColor = appearence.titleColor
         }
 
         iconView.frame = CGRect(origin: origin, size: appearence.iconSize)
-
+        backgroundView.layer.sublayers?.forEach { $0.removeFromSuperlayer() }
+        backgroundView.layer.addSublayer(layer1)
+        backgroundView.layer.addSublayer(layer2)
+        backgroundView.layer.addSublayer(layer3)
+        layer1.frame = backgroundView.bounds
+        layer2.frame = backgroundView.bounds
+        layer1.cornerRadius = backgroundView.layer.cornerRadius
+        layer2.cornerRadius = backgroundView.layer.cornerRadius
+        layer3.frame = backgroundView.bounds
+        layer3.masksToBounds = true
+        layer3.backgroundColor = backgroundView.backgroundColor?.cgColor
+        layer3.cornerRadius = backgroundView.layer.cornerRadius
         updateShadow()
     }
 
     private func updateShadow() {
         if isOn {
-            // 点击了, 内阴影
+            let path1: UIBezierPath
+            let innerPart1: UIBezierPath
+            switch appearence.style {
+            case .circle:
+                path1 = UIBezierPath(roundedRect: layer1.bounds.insetBy(dx: -10, dy: -10), cornerRadius: layer1.bounds.width / 2)
+                innerPart1 = UIBezierPath(roundedRect: layer1.bounds, cornerRadius: layer1.bounds.width / 2).reversing()
+            case let .rectangle(corner):
+                path1 = UIBezierPath(roundedRect: layer1.bounds.insetBy(dx: -10, dy: -10), cornerRadius: corner)
+                innerPart1 = UIBezierPath(roundedRect: layer1.bounds, cornerRadius: corner).reversing()
+            }
+            path1.append(innerPart1)
+            layer1.masksToBounds = true
+            layer1.shadowPath = path1.cgPath
+            layer1.shadowOffset = .init(width: -3, height: -3)
+            layer1.shadowOpacity = 1
+            layer1.shadowColor = UIColor(r: 48, g: 52, b: 58).cgColor
+            layer1.shadowRadius = 2
+
+            let path2: UIBezierPath
+            let innerPart2: UIBezierPath
+            switch appearence.style {
+            case .circle:
+                path2 = UIBezierPath(roundedRect: layer2.bounds.insetBy(dx: -10, dy: -10), cornerRadius: layer2.bounds.width / 2)
+                innerPart2 = UIBezierPath(roundedRect: layer2.bounds, cornerRadius: layer2.bounds.width / 2).reversing()
+            case let .rectangle(corner):
+                path2 = UIBezierPath(roundedRect: layer2.bounds.insetBy(dx: -10, dy: -10), cornerRadius: corner)
+                innerPart2 = UIBezierPath(roundedRect: layer2.bounds, cornerRadius: corner).reversing()
+            }
+            path2.append(innerPart2)
+            layer2.masksToBounds = true
+            layer2.shadowPath = path2.cgPath
+            layer2.shadowOffset = .init(width: 3, height: 3)
+            layer2.shadowOpacity = 1
+            layer2.shadowColor = UIColor(r: 36, g: 38, b: 44).cgColor
+            layer2.shadowRadius = 2
+
+            backgroundView.layer.masksToBounds = true
+            layer3.opacity = 0
         } else {
-            // 没点击,外阴影
             let path: UIBezierPath
             switch appearence.style {
             case .circle:
                 path = UIBezierPath(roundedRect: backgroundView.bounds, cornerRadius: backgroundView.layer.cornerRadius)
-            case .rectangle:
-                path = UIBezierPath(rect: backgroundView.bounds)
-            case let .roundedRectangle(corner):
+            case let .rectangle(corner):
                 path = UIBezierPath(roundedRect: backgroundView.bounds, cornerRadius: corner)
             }
 
-//            backgroundView.layer.sublayers?.forEach { $0.removeFromSuperlayer() }
-            backgroundView.subviews.forEach { $0.removeFromSuperview() }
+            layer1.shadowOpacity = 1
+            layer1.masksToBounds = false
+            layer1.shadowPath = path.cgPath
+            layer1.shadowOffset = .init(width: -3, height: -3)
+            layer1.shadowColor = UIColor(r: 48, g: 52, b: 58).cgColor
+            layer1.shadowRadius = 2
 
-            let view1 = UIView(frame: CGRect(origin: .zero, size: backgroundView.frame.size))
-            view1.layer.cornerRadius = backgroundView.layer.cornerRadius
-            view1.layer.masksToBounds = false
-            view1.layer.frame = CGRect(origin: .zero, size: backgroundView.frame.size)
-            view1.layer.shadowOffset = .init(width: -5, height: -5)
-            view1.layer.shadowOpacity = 1
-            view1.layer.shadowColor = UIColor(r: 48, g: 52, b: 58).cgColor
-            view1.layer.shadowRadius = 4
-            view1.layer.shadowPath = path.cgPath
-            view1.layer.needsDisplayOnBoundsChange = true
+            layer2.shadowOpacity = 1
+            layer2.masksToBounds = false
+            layer2.shadowPath = path.cgPath
+            layer2.shadowOffset = .init(width: 3, height: 3)
+            layer2.shadowColor = UIColor(r: 36, g: 38, b: 44).cgColor
+            layer2.shadowRadius = 2
 
-            let view2 = UIView(frame: CGRect(origin: .zero, size: backgroundView.frame.size))
-            view2.layer.cornerRadius = backgroundView.layer.cornerRadius
-            view2.layer.masksToBounds = false
-            view2.layer.frame = CGRect(origin: .zero, size: backgroundView.frame.size)
-            view2.layer.shadowOffset = .init(width: 5, height: 5)
-            view2.layer.shadowOpacity = 1
-            view2.layer.shadowColor = UIColor(r: 36, g: 38, b: 44).cgColor
-            view2.layer.shadowRadius = 4
-            view2.layer.shadowPath = path.cgPath
-            view2.layer.needsDisplayOnBoundsChange = true
-            
-            backgroundView.addSubview(view1)
-            backgroundView.addSubview(view2)
-            
-            let view3 = UIView(frame: CGRect(origin: .zero, size: backgroundView.frame.size))
-            view3.backgroundColor = backgroundView.backgroundColor
-            view3.layer.cornerRadius = backgroundView.layer.cornerRadius
-            backgroundView.addSubview(view3)
-
-//            backgroundView.layer.addSublayer(bottomLayer)
-//            backgroundView.layer.addSublayer(topLayer)
-//            backgroundView.layer.shadowOffset = .init(width: 15, height: 15)
-//            backgroundView.layer.shadowOpacity = 1
-//            backgroundView.layer.shadowColor = UIColor(r: 36, g: 38, b: 44).cgColor
-//            backgroundView.layer.shadowRadius = 15
-//            backgroundView.layer.shadowPath = path.cgPath
+            layer3.opacity = 1
+            backgroundView.layer.masksToBounds = false
         }
+    }
+}
+
+extension MButton {
+    public func onTapped(_ closure: @escaping (MButton) -> Void) {
+        onTappedClosure = closure
+    }
+
+    @objc private func onButtonTapped(_ sender: UITapGestureRecognizer) {
+        isOn.toggle()
+        onTappedClosure?(self)
     }
 }

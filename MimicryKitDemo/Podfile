@@ -7,5 +7,6 @@ target 'MimicryKitDemo' do
 
   # Pods for MimicryKitDemo
   pod 'SnapKit'
+  pod 'LookinServer', :configurations => ['Debug']
 
 end
