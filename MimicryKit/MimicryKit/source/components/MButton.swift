@@ -14,52 +14,72 @@ extension MButton {
     }
 
     public struct Appearence {
-        public var backgroundColor: UIColor
-        public var selectedColor: UIColor
-        public var unselectedColor: UIColor
-        public var shadowColor: UIColor
-        public var style: Style
+        public var selectedColor: UIColor = UIColor(r: 143, g: 147, b: 155)
+        public var unselectedColor: UIColor = UIColor(r: 143, g: 147, b: 155)
+        public var shadowColor: UIColor = UIColor(r: 48, g: 52, b: 58)
         public var iconSize: CGSize = CGSize(width: 22, height: 22)
         public var titleFont: UIFont = .systemFont(ofSize: 17)
         public var titleColor: UIColor = UIColor(r: 143, g: 147, b: 155)
 
-        public static var `default`: Appearence = Appearence(backgroundColor: .init(r: 41, g: 45, b: 50), selectedColor: UIColor(r: 143, g: 147, b: 155), unselectedColor: UIColor(r: 143, g: 147, b: 155), shadowColor: UIColor(r: 48, g: 52, b: 58), style: .circle)
+        public static var `default`: Appearence = Appearence(selectedColor: UIColor(r: 143, g: 147, b: 155), unselectedColor: UIColor(r: 143, g: 147, b: 155), shadowColor: UIColor(r: 48, g: 52, b: 58))
     }
 }
 
-extension MButton.Appearence {
-    public enum Style {
-        case circle
-        case rectangle(_ corner: CGFloat)
-    }
-}
-
-public class MButton: UIView {
-    public var isOn: Bool = false {
+public class MButton: MCard {
+    private var icon: UIImage? {
         didSet {
             updateView()
         }
     }
 
-    public var icon: UIImage? {
+    private var title: String = "" {
         didSet {
             updateView()
         }
     }
 
-    public var title: String = "" {
+    private var appearence: Appearence = .default {
         didSet {
             updateView()
         }
     }
 
-    var appearence: Appearence = .default {
+    private var selectedColor: UIColor = UIColor(r: 143, g: 147, b: 155) {
         didSet {
             updateView()
         }
     }
 
-    private var backgroundView: UIView = UIView()
+    private var unselectedColor: UIColor = UIColor(r: 143, g: 147, b: 155) {
+        didSet {
+            updateView()
+        }
+    }
+
+    private var shadowColor: UIColor = UIColor(r: 48, g: 52, b: 58) {
+        didSet {
+            updateView()
+        }
+    }
+
+    private var iconSize: CGSize = CGSize(width: 22, height: 22) {
+        didSet {
+            updateView()
+        }
+    }
+
+    private var titleFont: UIFont = .systemFont(ofSize: 17) {
+        didSet {
+            updateView()
+        }
+    }
+
+    private var titleColor: UIColor = UIColor(r: 143, g: 147, b: 155) {
+        didSet {
+            updateView()
+        }
+    }
+
     private var iconView: UIImageView = UIImageView()
     private var titleLabel: UILabel = UILabel()
 
@@ -79,7 +99,6 @@ public class MButton: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         initView()
-        updateView()
     }
 
     required init?(coder: NSCoder) {
@@ -93,18 +112,61 @@ public class MButton: UIView {
 }
 
 extension MButton {
-    private func initView() {
-        addSubview(backgroundView)
-        addSubview(iconView)
-        addSubview(titleLabel)
-
-        addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onButtonTapped(_:))))
+    @discardableResult public func title(_ title: String) -> Self {
+        self.title = title
+        return self
     }
 
-    private func updateView() {
-        print("frame: \(frame)")
-        backgroundView.frame = CGRect(origin: .zero, size: frame.size)
-        switch appearence.style {
+    @discardableResult public func icon(_ icon: UIImage?) -> Self {
+        self.icon = icon
+        return self
+    }
+    
+    @discardableResult public func icon(_ named: String) -> Self {
+        self.icon = UIImage(named: named)
+        return self
+    }
+    
+    @discardableResult public func selectedColor(_ selectedColor: UIColor) -> Self {
+        self.selectedColor = selectedColor
+        return self
+    }
+
+    @discardableResult public func unselectedColor(_ unselectedColor: UIColor) -> Self {
+        self.unselectedColor = unselectedColor
+        return self
+    }
+
+    @discardableResult public func shadowColor(_ shadowColor: UIColor) -> Self {
+        self.shadowColor = shadowColor
+        return self
+    }
+    
+    @discardableResult public func iconSize(_ iconSize: CGSize) -> Self {
+        self.iconSize = iconSize
+        return self
+    }
+    
+    @discardableResult public func titleFont(_ titleFont: UIFont) -> Self {
+        self.titleFont = titleFont
+        return self
+    }
+    
+    @discardableResult public func titleColor(_ titleColor: UIColor) -> Self {
+        self.titleColor = titleColor
+        return self
+    }
+}
+
+extension MButton {
+    private func initView() {
+        addSubview(iconView)
+        addSubview(titleLabel)
+    }
+
+    public func updateView() {
+        refreshView()
+        switch style {
         case .circle:
             var corner: CGFloat = 0
             if frame.width > frame.height {
@@ -112,13 +174,10 @@ extension MButton {
             } else {
                 corner = frame.height / 2
             }
-            backgroundView.layer.cornerRadius = corner
             layer.cornerRadius = corner
         case let .rectangle(corner):
-            backgroundView.layer.cornerRadius = corner
             layer.cornerRadius = corner
         }
-        backgroundView.backgroundColor = appearence.backgroundColor
 
         iconView.image = icon
         var origin: CGPoint = .zero
@@ -138,89 +197,19 @@ extension MButton {
             titleLabel.font = appearence.titleFont
             titleLabel.textColor = appearence.titleColor
         }
-
         iconView.frame = CGRect(origin: origin, size: appearence.iconSize)
-        backgroundView.layer.sublayers?.forEach { $0.removeFromSuperlayer() }
-        backgroundView.layer.addSublayer(layer1)
-        backgroundView.layer.addSublayer(layer2)
-        backgroundView.layer.addSublayer(layer3)
-        layer1.frame = backgroundView.bounds
-        layer2.frame = backgroundView.bounds
-        layer1.cornerRadius = backgroundView.layer.cornerRadius
-        layer2.cornerRadius = backgroundView.layer.cornerRadius
-        layer3.frame = backgroundView.bounds
-        layer3.masksToBounds = true
-        layer3.backgroundColor = backgroundView.backgroundColor?.cgColor
-        layer3.cornerRadius = backgroundView.layer.cornerRadius
-        updateShadow()
+        refreshShadow(isOn: isOn, layer1: layer1, layer2: layer2, layer3: layer3, backgroundView: backgroundView, style: style)
+    }
+}
+
+extension MButton {
+    override public func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
     }
 
-    private func updateShadow() {
-        if isOn {
-            let path1: UIBezierPath
-            let innerPart1: UIBezierPath
-            switch appearence.style {
-            case .circle:
-                path1 = UIBezierPath(roundedRect: layer1.bounds.insetBy(dx: -10, dy: -10), cornerRadius: layer1.bounds.width / 2)
-                innerPart1 = UIBezierPath(roundedRect: layer1.bounds, cornerRadius: layer1.bounds.width / 2).reversing()
-            case let .rectangle(corner):
-                path1 = UIBezierPath(roundedRect: layer1.bounds.insetBy(dx: -10, dy: -10), cornerRadius: corner)
-                innerPart1 = UIBezierPath(roundedRect: layer1.bounds, cornerRadius: corner).reversing()
-            }
-            path1.append(innerPart1)
-            layer1.masksToBounds = true
-            layer1.shadowPath = path1.cgPath
-            layer1.shadowOffset = .init(width: -3, height: -3)
-            layer1.shadowOpacity = 1
-            layer1.shadowColor = UIColor(r: 48, g: 52, b: 58).cgColor
-            layer1.shadowRadius = 2
-
-            let path2: UIBezierPath
-            let innerPart2: UIBezierPath
-            switch appearence.style {
-            case .circle:
-                path2 = UIBezierPath(roundedRect: layer2.bounds.insetBy(dx: -10, dy: -10), cornerRadius: layer2.bounds.width / 2)
-                innerPart2 = UIBezierPath(roundedRect: layer2.bounds, cornerRadius: layer2.bounds.width / 2).reversing()
-            case let .rectangle(corner):
-                path2 = UIBezierPath(roundedRect: layer2.bounds.insetBy(dx: -10, dy: -10), cornerRadius: corner)
-                innerPart2 = UIBezierPath(roundedRect: layer2.bounds, cornerRadius: corner).reversing()
-            }
-            path2.append(innerPart2)
-            layer2.masksToBounds = true
-            layer2.shadowPath = path2.cgPath
-            layer2.shadowOffset = .init(width: 3, height: 3)
-            layer2.shadowOpacity = 1
-            layer2.shadowColor = UIColor(r: 36, g: 38, b: 44).cgColor
-            layer2.shadowRadius = 2
-
-            backgroundView.layer.masksToBounds = true
-            layer3.opacity = 0
-        } else {
-            let path: UIBezierPath
-            switch appearence.style {
-            case .circle:
-                path = UIBezierPath(roundedRect: backgroundView.bounds, cornerRadius: backgroundView.layer.cornerRadius)
-            case let .rectangle(corner):
-                path = UIBezierPath(roundedRect: backgroundView.bounds, cornerRadius: corner)
-            }
-
-            layer1.shadowOpacity = 1
-            layer1.masksToBounds = false
-            layer1.shadowPath = path.cgPath
-            layer1.shadowOffset = .init(width: -3, height: -3)
-            layer1.shadowColor = UIColor(r: 48, g: 52, b: 58).cgColor
-            layer1.shadowRadius = 2
-
-            layer2.shadowOpacity = 1
-            layer2.masksToBounds = false
-            layer2.shadowPath = path.cgPath
-            layer2.shadowOffset = .init(width: 3, height: 3)
-            layer2.shadowColor = UIColor(r: 36, g: 38, b: 44).cgColor
-            layer2.shadowRadius = 2
-
-            layer3.opacity = 1
-            backgroundView.layer.masksToBounds = false
-        }
+    override public func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        onButtonTapped()
     }
 }
 
@@ -229,7 +218,7 @@ extension MButton {
         onTappedClosure = closure
     }
 
-    @objc private func onButtonTapped(_ sender: UITapGestureRecognizer) {
+    private func onButtonTapped() {
         isOn.toggle()
         onTappedClosure?(self)
     }

@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0E134D6B25B722BC00E072C0 /* MComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E134D6A25B722BC00E072C0 /* MComponent.swift */; };
+		0E134D6F25B7252D00E072C0 /* MCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E134D6E25B7252D00E072C0 /* MCard.swift */; };
+		0E52B98125B9AC1B001D7A8B /* MProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E52B98025B9AC1B001D7A8B /* MProgressBar.swift */; };
 		0E569D2625B57962000D88CA /* String+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E569D2525B57962000D88CA /* String+Extensions.swift */; };
 		0EFFAD1A25B32867007480A1 /* MimicryKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0EFFAD1025B32866007480A1 /* MimicryKit.framework */; };
 		0EFFAD1F25B32867007480A1 /* MimicryKitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EFFAD1E25B32867007480A1 /* MimicryKitTests.swift */; };
@@ -26,6 +29,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0E134D6A25B722BC00E072C0 /* MComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MComponent.swift; sourceTree = "<group>"; };
+		0E134D6E25B7252D00E072C0 /* MCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCard.swift; sourceTree = "<group>"; };
+		0E52B98025B9AC1B001D7A8B /* MProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MProgressBar.swift; sourceTree = "<group>"; };
 		0E569D2525B57962000D88CA /* String+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extensions.swift"; sourceTree = "<group>"; };
 		0EFFAD1025B32866007480A1 /* MimicryKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MimicryKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0EFFAD1325B32866007480A1 /* MimicryKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MimicryKit.h; sourceTree = "<group>"; };
@@ -115,6 +121,9 @@
 			isa = PBXGroup;
 			children = (
 				0EFFAD6D25B32B07007480A1 /* MButton.swift */,
+				0E134D6A25B722BC00E072C0 /* MComponent.swift */,
+				0E134D6E25B7252D00E072C0 /* MCard.swift */,
+				0E52B98025B9AC1B001D7A8B /* MProgressBar.swift */,
 			);
 			path = components;
 			sourceTree = "<group>";
@@ -238,7 +247,10 @@
 			files = (
 				0EFFAD6E25B32B07007480A1 /* MButton.swift in Sources */,
 				0E569D2625B57962000D88CA /* String+Extensions.swift in Sources */,
+				0E134D6F25B7252D00E072C0 /* MCard.swift in Sources */,
 				0EFFAD7425B32B4C007480A1 /* StyleUtil.swift in Sources */,
+				0E52B98125B9AC1B001D7A8B /* MProgressBar.swift in Sources */,
+				0E134D6B25B722BC00E072C0 /* MComponent.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
